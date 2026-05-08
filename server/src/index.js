@@ -19,10 +19,32 @@ const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173,http
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+function isAllowedOrigin(origin) {
+  if (!origin) {
+    return true;
+  }
+
+  const hostname = (() => {
+    try {
+      return new URL(origin).hostname;
+    } catch {
+      return "";
+    }
+  })();
+
+  return (
+    allowedOrigins.includes("*") ||
+    allowedOrigins.includes(origin) ||
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname.endsWith(".vercel.app")
+  );
+}
+
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
+      if (isAllowedOrigin(origin)) {
         callback(null, true);
         return;
       }
